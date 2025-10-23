@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "lab03-workyard": {
+      "commandName": "Project",
+      "commandLineArgs": "ZeleninaShort.txt Vystup.txt cena",
+      "workingDirectory": "C:\\Tomas\\Academic\\teaching\\nprg035\\public\\lab03\\lab03-wordprocessing\\"
+    }
+  }
+}
