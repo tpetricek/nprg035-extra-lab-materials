@@ -1,0 +1,78 @@
+﻿namespace TableSummator;
+
+public record class TableSummatorProcessorPublic(TextWriter OutputWriter, string TargetColumnName) : ITokenProcessor {
+	private bool _processingColumnHeaders = true;
+	private int _headerColumnCount;
+	private int _currentColumn = 0;
+
+	private bool _foundTargetColumn = false;
+	private int _targetColumnIndex;
+	private long _sum = 0;
+
+	public bool ProcessingColumnHeaders { get { return _processingColumnHeaders; } }
+  public long Sum { get { return _sum; } }
+
+  public void ProcessToken(Token token) {
+		if (_processingColumnHeaders) {
+			ProcessHeaderToken(token);
+		} else {
+			ProcessTableDataToken(token);
+		}
+	}
+
+	private void ProcessHeaderToken(Token token) {
+		switch (token.Type) {
+			case TokenType.Word:
+				if (!_foundTargetColumn && StringComparer.CurrentCultureIgnoreCase.Compare(token.Value, TargetColumnName) == 0) {
+					_targetColumnIndex = _currentColumn;
+					_foundTargetColumn = true;
+				}
+				_currentColumn++;
+				break;
+			case TokenType.EndOfLine:
+				if (_currentColumn == 0) {
+					throw new Exception("Invalid file format");
+				} else if (!_foundTargetColumn) {
+					throw new Exception("Non-existent column");
+				}
+				_headerColumnCount = _currentColumn;
+				_currentColumn = 0;
+				_processingColumnHeaders = false;
+				break;
+			default:
+				throw new Exception("Invalid file format");
+		}
+	}
+
+	private void ProcessTableDataToken(Token token) {
+		switch (token.Type) {
+			case TokenType.Word:
+				if (_currentColumn == _targetColumnIndex) {
+					if (int.TryParse(token.Value!, out int value)) {
+						_sum += value;
+					} else {
+						throw new Exception("Not a number");
+					}
+				}
+				_currentColumn++;
+				break;
+			case TokenType.EndOfLine:
+				if (_currentColumn == 0 || _currentColumn != _headerColumnCount) {
+					throw new Exception("Invalid file fromat");
+				}
+				_currentColumn = 0;
+				break;
+			default:
+				throw new Exception("Invalid file fomrat");
+		}
+	}
+
+	public void Finish() {
+		if (_processingColumnHeaders) {
+			throw new Exception("Invalid file format");
+		}
+		OutputWriter.WriteLine(TargetColumnName);
+		OutputWriter.WriteLine(new string('-', TargetColumnName.Length));
+		OutputWriter.WriteLine(_sum);
+	}
+}
