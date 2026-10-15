@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "lab02-workyard": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\Tomas\\Academic\\teaching\\nprg035\\public\\lab02\\sample.txt"
+    }
+  }
+}
